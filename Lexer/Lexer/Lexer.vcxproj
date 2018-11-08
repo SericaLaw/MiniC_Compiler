@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -147,13 +147,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FANode.h" />
+    <ClInclude Include="NFA.h" />
+    <ClInclude Include="Optimizer.h" />
     <ClInclude Include="Regex.h" />
     <ClInclude Include="RegexOperator.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TestNFA.h" />
+    <ClInclude Include="TestOptimizer.h" />
+    <ClInclude Include="TestRegex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FANode.cpp" />
     <ClCompile Include="Lexer.cpp" />
+    <ClCompile Include="NFA.cpp" />
+    <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="Regex.cpp" />
     <ClCompile Include="RegexOperator.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -162,6 +171,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestNFA.cpp" />
+    <ClCompile Include="TestOptimizer.cpp" />
+    <ClCompile Include="TestRegex.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

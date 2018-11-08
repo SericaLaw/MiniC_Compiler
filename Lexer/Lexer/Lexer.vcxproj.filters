@@ -27,6 +27,24 @@
     <ClInclude Include="RegexOperator.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FANode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NFA.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestNFA.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestRegex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestOptimizer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -39,6 +57,24 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="RegexOperator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FANode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NFA.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestNFA.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRegex.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Optimizer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestOptimizer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
