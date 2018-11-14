@@ -53,4 +53,5 @@ void TestNFA::run_testcase()
 	NFA nfa_6;
 	nfa_6.create_from_regex(test_complex.to_postfix(), test_complex.get_pattern());
 	nfa_6.print();
+
 }

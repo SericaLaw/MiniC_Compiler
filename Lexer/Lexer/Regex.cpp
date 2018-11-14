@@ -111,11 +111,12 @@ void Regex::preprocess()
 	for (int i = 1; i < pattern.size(); i++) {
 		char former = pattern[i - 1];
 		char current = pattern[i];
-		/* 如果当前字符是字母或左括号，注意不要遗漏左括号的情况 */
-		if (!RegexOperator::includes(current) || current == '(') {
-			if (/* 如果前面的字符是单目运算符或字母，则在当前字符前加上连接运算符 */
+		/* 如果当前字符是字母或括号，注意不要遗漏括号的情况 */
+		if (!RegexOperator::includes(current) || current == '(' ) {
+			if (/* 如果前面的字符是单目运算符或字母或右括号，则在当前字符前加上连接运算符 */
 				RegexOperator::includes(former) && RegexOperator::typeof(former) == 1 ||
-				!RegexOperator::includes(former)) {
+				!RegexOperator::includes(former) ||
+				former == ')') {
 				pattern.insert(i++, "#");
 			}
 		}

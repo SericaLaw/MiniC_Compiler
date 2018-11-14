@@ -8,5 +8,6 @@ public:
 
 public:
 	static void test_move();
+	static void test_build_dfa();
 };
 

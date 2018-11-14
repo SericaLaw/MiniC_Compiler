@@ -38,6 +38,11 @@ void NFA::set_end_node(FANode * end_node)
 	this->end_node = end_node;
 }
 
+set<int>& NFA::get_alphabet()
+{
+	return alphabet;
+}
+
 void NFA::join(NFA * right)
 {
 	end_node->add_neighbour(FANode::EPSILON, right->get_start_node());
@@ -156,6 +161,7 @@ void NFA::create_from_regex(const string & postfix_pattern, const string & actio
 		else {
 			nfa_1 = new NFA((int)c);
 			operands.push(nfa_1);
+			alphabet.insert((int)c);
 		}
 
 		
@@ -197,4 +203,10 @@ void NFA::print()
 			cout << endl;
 		}
 	}
+
+	cout << "alphabet:\n";
+	for (char c : alphabet) {
+		cout << c << ' ';
+	}
+	cout << endl;
 }
