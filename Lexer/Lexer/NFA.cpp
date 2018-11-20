@@ -4,6 +4,8 @@
 
 NFA::NFA()
 {
+	start_node = new FANode();
+	end_node = new FANode();
 }
 
 NFA::NFA(int step)
@@ -170,8 +172,28 @@ void NFA::create_from_regex(const string & postfix_pattern, const string & actio
 	operands.pop();
 	assert(operands.empty());
 	start_node = res->get_start_node();
+	
 	end_node = res->get_end_node();
 	end_node->set_action(action);
+}
+// TODO: 这是暂时的函数，用于测试用，实际使用时只需要传入vector<Regex> regexes, action为regex的lexme成员，这些需要在构造类constructor里实现
+void NFA::create_from_regexes(const vector<string>& regexes, const vector<string>& actions)
+{
+	assert(regexes.size() == actions.size());
+	vector<NFA> nfas;
+	for (int i = 0, n = regexes.size(); i < n; i++) {
+		NFA nfa;
+		nfa.create_from_regex(Regex(regexes[i]).to_postfix(), actions[i]);
+		nfas.push_back(nfa);
+		// 也要复制一份字母表
+		auto _alphabet = nfa.get_alphabet();
+		for (int a : _alphabet) {
+			alphabet.insert(a);
+		}
+	}
+	for (NFA nfa : nfas) {
+		start_node->add_neighbour(FANode::EPSILON, nfa.get_start_node());
+	}
 }
 
 void NFA::print()

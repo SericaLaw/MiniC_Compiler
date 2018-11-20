@@ -29,6 +29,7 @@ public:
 
 	/* 扫描一个后缀形式的正则表达式，由此创建匹配该模式，终结节点接收action的NFA */
 	void create_from_regex(const string & postfix_pattern, const string & action);
+	void create_from_regexes(const vector<string> & regexes, const vector<string> & action);
 	void print();
 };
 

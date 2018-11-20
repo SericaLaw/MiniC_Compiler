@@ -68,7 +68,17 @@ void TestOptimizer::test_build_dfa()
 {
 	NFA nfa;
 	/*nfa.create_from_regex(Regex(".+(ab|cd|ef)*|(0|1)?ab*").to_postfix(), ".+(ab|cd|ef)*|(0|1)?ab*");*/
-	nfa.create_from_regex(Regex("ab(aa|bb)c").to_postfix(), "ab(aa|bb)c");
+	/*nfa.create_from_regex(Regex("ab(aa|bb)c").to_postfix(), "ab(aa|bb)c");*/
+	nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
+	//vector<string> regexes;
+	//vector<string> actions;
+	//regexes.push_back("a");
+	//regexes.push_back("abb");
+	//regexes.push_back("a*b+");
+	//actions.push_back("a");
+	//actions.push_back("abb");
+	//actions.push_back("a*b+");
+	//nfa.create_from_regexes(regexes, actions);
 	nfa.print();
 
 	Optimizer o;
