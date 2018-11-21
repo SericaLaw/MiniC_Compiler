@@ -39,8 +39,16 @@ string Regex::to_postfix()
 
 	for (int i = 0, n = pattern.size(); i < n && !op.empty();) {
 		char current = pattern[i];
+		/* 转移字符处理 */
+		if (current == '\\') {
+			if (i + 1 < n && RegexOperator::includes(pattern[i + 1])) {
+				postfix += '\\';
+				postfix += pattern[i + 1];
+				i += 2;
+			}
+		}
 		/* 操作符处理 */
-		if (RegexOperator::includes(current)) {
+		else if (RegexOperator::includes(current)) {
 			/* 单目运算符，直接输出 */
 			if (RegexOperator::typeof(current) == 1) {
 				postfix += current;
@@ -115,8 +123,10 @@ void Regex::preprocess()
 		if (!RegexOperator::includes(current) || current == '(' ) {
 			if (/* 如果前面的字符是单目运算符或字母或右括号，则在当前字符前加上连接运算符 */
 				RegexOperator::includes(former) && RegexOperator::typeof(former) == 1 ||
-				!RegexOperator::includes(former) ||
-				former == ')') {
+				(!RegexOperator::includes(former) && former != '\\') ||
+				former == ')' || 
+				/* 转义字符 */
+				(i > 1 && RegexOperator::includes(former) && pattern[i-2] == '\\')) {
 				pattern.insert(i++, "#");
 			}
 		}

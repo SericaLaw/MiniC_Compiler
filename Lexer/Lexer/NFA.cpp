@@ -119,7 +119,16 @@ void NFA::create_from_regex(const string & postfix_pattern, const string & actio
 	stack<NFA *> operands;
 	NFA * nfa_1 = nullptr;
 	NFA * nfa_2 = nullptr;
-	for (char c : postfix_pattern) {
+	for (int i = 0, n = postfix_pattern.size(); i < n;  i++) {
+		char c = postfix_pattern[i];
+		if (c == '\\' && i + 1 < n && RegexOperator::includes(postfix_pattern[i + 1])) {
+			nfa_1 = new NFA((int)postfix_pattern[i + 1]);
+			operands.push(nfa_1);
+			alphabet.insert((int)postfix_pattern[i + 1]);
+			i++;
+			continue;
+		}
+
 		if (c == '*') {
 			nfa_1 = operands.top();
 			operands.pop();

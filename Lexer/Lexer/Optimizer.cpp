@@ -4,6 +4,7 @@
 
 Optimizer::Optimizer()
 {
+	min_dfa_trans.clear();
 }
 
 
@@ -110,6 +111,16 @@ void Optimizer::build_dfa(NFA & nfa)
 }
 
 
+bool Optimizer::recorded_in_min_dfa_trans(int group_num)
+{
+	for (auto it = min_dfa_trans.begin(); it != min_dfa_trans.end(); it++) {
+		pair<int, int> item = it->first;
+		if (item.first == group_num)
+			return true;
+	}
+	return false;
+}
+
 void Optimizer::print_d_trans()
 {
 
@@ -146,28 +157,103 @@ void Optimizer::minimize_dfa()
 	 * vector<set<FANode*>> d_states;
 	 * vector<string> d_actions;
 	 * 
-	 * vector<int> group 记录当前迭代时各个状态对应的组号
-	 * vector<pair<int, int>> group_trans 记录各个组的状态转换表，注意到这个转换表最终将变成min dfa的转换表
-	 * vector<int> group_trans_mark 记录各个组在当前迭代中有没有被初始化
+	 * vector<int> groups 记录当前迭代时各个状态对应的组号，迭代前不清空
+	 * vector<pair<int, int>> min_dfa_trans 记录各个组的状态转换表，注意到这个转换表最终将变成min dfa的转换表，迭代前清空
+	 * vector<string> min_dfa_actions 迭代前清空
+	 * vector<int> group_trans_mark 记录各个组在当前迭代中有没有被初始化 - 不需要
 	 * has_changed 记录当前迭代有没有新的划分，若为false则迭代结束
 	 * 
-	 * attention: 终结状态集是否可以正确分组？
+	 * attention: 终结状态集是否可以正确分组？ 现在还不能！
+	 * TODO 下面的算法有问题啊啊啊啊啊啊啊 还是应该保留上一次的min_dfa_trans 龙书p116 新的划分依据和上一次的分组有关！
 	*/
-
-	vector<int> groups;
-	vector<pair<int, int>> min_dfa_trans;
-	vector<int> group_trans_mark;
-	bool has_changed = false;
-
+	assert(d_states.size() == d_actions.size());
+	
+	
+	map<string,int> marked_actions;
 	// init
+	group_count = 1;
 	for (auto a : d_actions) {
 		if (a == "start" || a == "")
-			groups.push_back(1);
+			groups.push_back(0);
 		else if (a == "phai")
-			groups.push_back(2);
-		else
-			groups.push_back(3);
+			groups.push_back(group_count++);
+		else {
+			if (marked_actions.find(a) == marked_actions.end()) {
+				groups.push_back(group_count);
+				marked_actions[a] = group_count;
+				group_count++;
+			}
+			else {
+				groups.push_back(marked_actions[a]);
+			}
+		}
 	}
 
+	assert(groups.size() == d_actions.size());
+	
+	//assert(groups.size() == d_trans.size());
+	bool has_changed = true;
 
+
+	int loop_count = 1;
+
+	while (has_changed) {
+		has_changed = false;
+		for (int i = 0, n = d_states.size(); i < n; i++) {
+			if (recorded_in_min_dfa_trans(groups[i])) {
+				// check whether state[i] belongs to groups[i]
+				bool belong_to_group = true;
+				for (int a : alphabet) {
+					if (groups[d_trans[pair<int, int>(i, a)]]!= min_dfa_trans[pair<int, int>(groups[i], a)]) {
+						belong_to_group = false;
+						break;
+					}
+
+				}
+				// if is, continue
+
+				// else, group[i] = group_count + 1; has_changed = true;
+				if (!belong_to_group) {
+					groups[i] = group_count;
+					has_changed = true;
+				}
+			}
+			else {
+				// init min_dfa_trans for group[i]
+				for (int a : alphabet) {
+					int trans_state_index = d_trans[pair<int, int>(i, a)];
+					min_dfa_trans[pair<int, int>(groups[i], a)] = groups[trans_state_index];
+				}
+			}					
+		}
+		if (has_changed) {
+			// go to next iteration
+			group_count++;
+			min_dfa_trans.clear();
+		}
+		// else algo stops
+
+	}
+	for (int i = 0; i < group_count; i++) {
+		for (int j = 0, n = groups.size(); j < n; j++) {
+			int g = groups[j];
+			if (g == i) {
+				min_dfa_actions.push_back(d_actions[j]);
+				break;
+			}
+		}
+	}
+	assert(min_dfa_actions.size() == group_count);
+
+}
+
+void Optimizer::print_min_dfa_trans()
+{
+	for (int i = 0; i < group_count; i++) {
+		cout << "group: " << i << '\t' << "action: " << min_dfa_actions[i] << '\t';
+		for (int a : alphabet) {
+			cout << (char)a << ": " << min_dfa_trans[pair<int, int>(i, a)] << '\t';
+		}
+		cout << endl;
+	}
 }

@@ -69,7 +69,8 @@ void TestOptimizer::test_build_dfa()
 	NFA nfa;
 	/*nfa.create_from_regex(Regex(".+(ab|cd|ef)*|(0|1)?ab*").to_postfix(), ".+(ab|cd|ef)*|(0|1)?ab*");*/
 	/*nfa.create_from_regex(Regex("ab(aa|bb)c").to_postfix(), "ab(aa|bb)c");*/
-	nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
+	//nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
+	nfa.create_from_regex(Regex("(a|b)*abb").to_postfix(), "(a|b)*abb");
 	//vector<string> regexes;
 	//vector<string> actions;
 	//regexes.push_back("a");
@@ -84,4 +85,97 @@ void TestOptimizer::test_build_dfa()
 	Optimizer o;
 	o.build_dfa(nfa);
 	o.print_d_trans();
+}
+
+void TestOptimizer::test_minimize_dfa()
+{
+	NFA nfa;
+	//nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
+	/*vector<string> regexes;
+	vector<string> actions;
+	regexes.push_back("a");
+	regexes.push_back("abb");
+	regexes.push_back("a*b+");
+	actions.push_back("a");
+	actions.push_back("abb");
+	actions.push_back("a*b+");
+	nfa.create_from_regexes(regexes, actions);*/
+	nfa.create_from_regex(Regex("(a|b)*abb").to_postfix(), "(a|b)*abb");
+	Optimizer o;
+	o.build_dfa(nfa);
+	o.print_d_trans();
+	cout << endl;
+	o.minimize_dfa();
+	o.print_min_dfa_trans();
+}
+
+void TestOptimizer::test_mini_mini_c()
+{
+	vector<string> regexes;
+	vector<string> actions;
+	regexes.push_back("\\+");
+	actions.push_back("+");
+	regexes.push_back("-");
+	actions.push_back("-");
+	regexes.push_back("\\*");
+	actions.push_back("*");
+	regexes.push_back("/");
+	actions.push_back("/");
+
+	//regexes.push_back("\\+=");
+	//actions.push_back("+=");
+	//regexes.push_back("-=");
+	//actions.push_back("-=");
+	//regexes.push_back("\\*=");
+	//actions.push_back("*=");
+	//regexes.push_back("/=");
+	//actions.push_back("/=");
+
+	//regexes.push_back("&");
+	//actions.push_back("&");
+	//regexes.push_back("\\|");
+	//actions.push_back("\\|");
+	//regexes.push_back("=");
+	//actions.push_back("=");
+
+	//regexes.push_back("==");
+	//actions.push_back("eq");
+	//regexes.push_back("<");
+	//actions.push_back("lt");
+	//regexes.push_back(">");
+	//actions.push_back("gt");
+	//regexes.push_back("<=");
+	//actions.push_back("lte");
+	//regexes.push_back(">=");
+	//actions.push_back("gte");
+	//regexes.push_back(":");
+	//actions.push_back(":");
+	//regexes.push_back("\\?");
+	//actions.push_back("\\?");
+
+	//regexes.push_back("main");
+	//actions.push_back("main");
+	//regexes.push_back("const");
+	//actions.push_back("const");
+	//regexes.push_back("void");
+	//actions.push_back("void");
+
+	//regexes.push_back(",");
+	//actions.push_back(",");
+	//regexes.push_back(";");
+	//actions.push_back(";");
+	//regexes.push_back("{");
+	//actions.push_back("{");
+	//regexes.push_back("}");
+	//actions.push_back("}");
+
+	NFA nfa;
+	nfa.create_from_regexes(regexes, actions);
+
+	Optimizer o;
+	o.build_dfa(nfa);
+	o.print_d_trans();
+	cout << endl;
+	o.minimize_dfa();
+	o.print_min_dfa_trans();
 }
