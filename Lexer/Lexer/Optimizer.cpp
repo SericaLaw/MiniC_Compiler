@@ -199,13 +199,18 @@ void Optimizer::minimize_dfa()
 
 	while (has_changed) {
 		has_changed = false;
+		vector<int> new_group_mark(groups.size(), -1);
+		assert(new_group_mark.size() == groups.size());
 		for (int i = 0, n = d_states.size(); i < n; i++) {
 			if (recorded_in_min_dfa_trans(groups[i])) {
 				// check whether state[i] belongs to groups[i]
 				bool belong_to_group = true;
 				for (int a : alphabet) {
 					if (groups[d_trans[pair<int, int>(i, a)]]!= min_dfa_trans[pair<int, int>(groups[i], a)]) {
-						belong_to_group = false;
+						// 如果不属于该组，给他一个标记
+						new_group_mark[i] = groups[i];
+						has_changed = true;
+						//belong_to_group = false;
 						break;
 					}
 
@@ -213,10 +218,10 @@ void Optimizer::minimize_dfa()
 				// if is, continue
 
 				// else, group[i] = group_count + 1; has_changed = true;
-				if (!belong_to_group) {
-					groups[i] = group_count;
-					has_changed = true;
-				}
+				//if (!belong_to_group) {
+					//groups[i] = group_count;
+					//has_changed = true;
+				//}
 			}
 			else {
 				// init min_dfa_trans for group[i]
@@ -226,9 +231,25 @@ void Optimizer::minimize_dfa()
 				}
 			}					
 		}
+		// 分配新的组号，对于new_group_mark中不为-1的状态标记，给相同的标记以相同的新的组号，分配好新组号后置位-1
+		while (find_if(new_group_mark.begin(), new_group_mark.end(), [](int x) -> bool { return x != -1; }) != new_group_mark.end()) {
+			int i = 0;
+			while (i < new_group_mark.size() && new_group_mark[i] == -1) {
+				i++;
+			}
+			assert(i < new_group_mark.size());
+			int mark_to_change = groups[i];
+			for (int j = 0, n = new_group_mark.size(); j < n; j++) {
+				if (new_group_mark[j] == mark_to_change) {
+					groups[j] = group_count;
+					new_group_mark[j] = -1;
+				}
+			}
+			group_count++;
+		}
 		if (has_changed) {
 			// go to next iteration
-			group_count++;
+			//group_count++;
 			min_dfa_trans.clear();
 		}
 		// else algo stops

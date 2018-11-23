@@ -90,7 +90,7 @@ void TestOptimizer::test_build_dfa()
 void TestOptimizer::test_minimize_dfa()
 {
 	NFA nfa;
-	//nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
+	nfa.create_from_regex(Regex("a|abb|a*b+").to_postfix(), "a|abb|a*b+");
 	/*vector<string> regexes;
 	vector<string> actions;
 	regexes.push_back("a");
@@ -100,7 +100,7 @@ void TestOptimizer::test_minimize_dfa()
 	actions.push_back("abb");
 	actions.push_back("a*b+");
 	nfa.create_from_regexes(regexes, actions);*/
-	nfa.create_from_regex(Regex("(a|b)*abb").to_postfix(), "(a|b)*abb");
+	//nfa.create_from_regex(Regex("(a|b)*a(a|b)").to_postfix(), "(a|b)*abb");
 	Optimizer o;
 	o.build_dfa(nfa);
 	o.print_d_trans();
@@ -122,43 +122,43 @@ void TestOptimizer::test_mini_mini_c()
 	regexes.push_back("/");
 	actions.push_back("/");
 
-	//regexes.push_back("\\+=");
-	//actions.push_back("+=");
-	//regexes.push_back("-=");
-	//actions.push_back("-=");
-	//regexes.push_back("\\*=");
-	//actions.push_back("*=");
-	//regexes.push_back("/=");
-	//actions.push_back("/=");
+	regexes.push_back("\\+=");
+	actions.push_back("+=");
+	regexes.push_back("-=");
+	actions.push_back("-=");
+	regexes.push_back("\\*=");
+	actions.push_back("*=");
+	regexes.push_back("/=");
+	actions.push_back("/=");
 
-	//regexes.push_back("&");
-	//actions.push_back("&");
-	//regexes.push_back("\\|");
-	//actions.push_back("\\|");
-	//regexes.push_back("=");
-	//actions.push_back("=");
+	regexes.push_back("&");
+	actions.push_back("&");
+	regexes.push_back("\\|");
+	actions.push_back("\\|");
+	regexes.push_back("=");
+	actions.push_back("=");
 
-	//regexes.push_back("==");
-	//actions.push_back("eq");
-	//regexes.push_back("<");
-	//actions.push_back("lt");
-	//regexes.push_back(">");
-	//actions.push_back("gt");
-	//regexes.push_back("<=");
-	//actions.push_back("lte");
-	//regexes.push_back(">=");
-	//actions.push_back("gte");
+	regexes.push_back("==");
+	actions.push_back("eq");
+	regexes.push_back("<");
+	actions.push_back("lt");
+	regexes.push_back(">");
+	actions.push_back("gt");
+	regexes.push_back("<=");
+	actions.push_back("lte");
+	regexes.push_back(">=");
+	actions.push_back("gte");
 	//regexes.push_back(":");
 	//actions.push_back(":");
 	//regexes.push_back("\\?");
 	//actions.push_back("\\?");
 
-	//regexes.push_back("main");
-	//actions.push_back("main");
-	//regexes.push_back("const");
-	//actions.push_back("const");
-	//regexes.push_back("void");
-	//actions.push_back("void");
+	/*regexes.push_back("main");
+	actions.push_back("main");
+	regexes.push_back("const");
+	actions.push_back("const");
+	regexes.push_back("void");
+	actions.push_back("void");*/
 
 	//regexes.push_back(",");
 	//actions.push_back(",");
