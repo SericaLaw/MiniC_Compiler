@@ -36,5 +36,8 @@ public:
 	/* ×îĞ¡»¯DFA */
 	void minimize_dfa();
 	void print_min_dfa_trans();
+public:
+	map<pair<int, int>, int> get_min_dfa_trans();
+	vector<string> get_min_dfa_actions();
 };
 

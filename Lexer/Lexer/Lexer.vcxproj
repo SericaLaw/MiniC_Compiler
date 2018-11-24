@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DFA.h" />
     <ClInclude Include="FANode.h" />
     <ClInclude Include="NFA.h" />
     <ClInclude Include="Optimizer.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="TestRegex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DFA.cpp" />
     <ClCompile Include="FANode.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="NFA.cpp" />

@@ -2,11 +2,15 @@
 class DFA
 {
 private:
-	vector<int> states;
 	map<pair<int, int>, int> trans;
 	vector<string> actions;
+	int start_state;
 public:
 	DFA();
 	~DFA();
-	DFA(vector<int> & states, map<pair<int, int>, int> & trans, vector<string> & actions);
+	DFA(map<pair<int, int>, int> trans, vector<string> actions);
+
+	void scan(const string & code);
+private:
+	int move(int state, int step);
 };

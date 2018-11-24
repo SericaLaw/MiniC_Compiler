@@ -148,26 +148,29 @@ void TestOptimizer::test_mini_mini_c()
 	actions.push_back("lte");
 	regexes.push_back(">=");
 	actions.push_back("gte");
-	//regexes.push_back(":");
-	//actions.push_back(":");
-	//regexes.push_back("\\?");
-	//actions.push_back("\\?");
+	regexes.push_back(":");
+	actions.push_back(":");
+	regexes.push_back("\\?");
+	actions.push_back("\\?");
 
-	/*regexes.push_back("main");
+	regexes.push_back("main");
 	actions.push_back("main");
 	regexes.push_back("const");
 	actions.push_back("const");
 	regexes.push_back("void");
-	actions.push_back("void");*/
+	actions.push_back("void");
 
-	//regexes.push_back(",");
-	//actions.push_back(",");
-	//regexes.push_back(";");
-	//actions.push_back(";");
-	//regexes.push_back("{");
-	//actions.push_back("{");
-	//regexes.push_back("}");
-	//actions.push_back("}");
+	regexes.push_back(",");
+	actions.push_back(",");
+	regexes.push_back(";");
+	actions.push_back(";");
+	regexes.push_back("{");
+	actions.push_back("{");
+	regexes.push_back("}");
+	actions.push_back("}");
+
+	regexes.push_back("[_a-zA-Z][_a-zA-Z0-9]");
+	actions.push_back("id");
 
 	NFA nfa;
 	nfa.create_from_regexes(regexes, actions);
@@ -178,4 +181,7 @@ void TestOptimizer::test_mini_mini_c()
 	cout << endl;
 	o.minimize_dfa();
 	o.print_min_dfa_trans();
+
+	DFA dfa(o.get_min_dfa_trans(), o.get_min_dfa_actions());
+	dfa.scan(" main - const + void | | void { += a * c }");
 }

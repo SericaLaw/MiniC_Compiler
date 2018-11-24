@@ -278,3 +278,13 @@ void Optimizer::print_min_dfa_trans()
 		cout << endl;
 	}
 }
+
+map<pair<int, int>, int> Optimizer::get_min_dfa_trans()
+{
+	return min_dfa_trans;
+}
+
+vector<string> Optimizer::get_min_dfa_actions()
+{
+	return min_dfa_actions;
+}
