@@ -151,7 +151,7 @@ void TestOptimizer::test_mini_mini_c()
 	regexes.push_back(":");
 	actions.push_back(":");
 	regexes.push_back("\\?");
-	actions.push_back("\\?");
+	actions.push_back("?");
 
 	regexes.push_back("main");
 	actions.push_back("main");
@@ -169,7 +169,7 @@ void TestOptimizer::test_mini_mini_c()
 	regexes.push_back("}");
 	actions.push_back("}");
 
-	regexes.push_back("[_a-zA-Z][_a-zA-Z0-9]");
+	regexes.push_back("[_a-zA-Z][_a-zA-Z0-9]*");
 	actions.push_back("id");
 
 	NFA nfa;

@@ -2,6 +2,7 @@
 class DFA
 {
 private:
+	vector<string> symbol_table;
 	map<pair<int, int>, int> trans;
 	vector<string> actions;
 	int start_state;
