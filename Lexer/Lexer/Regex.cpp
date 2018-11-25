@@ -39,7 +39,7 @@ string Regex::to_postfix()
 
 	for (int i = 0, n = pattern.size(); i < n && !op.empty();) {
 		char current = pattern[i];
-		/* 转移字符处理 */
+		/* 转义字符处理 */
 		if (current == '\\') {
 			if (i + 1 < n && RegexOperator::includes(pattern[i + 1])) {
 				postfix += '\\';

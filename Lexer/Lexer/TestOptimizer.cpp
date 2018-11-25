@@ -113,7 +113,7 @@ void TestOptimizer::test_mini_mini_c()
 {
 	vector<string> regexes;
 	vector<string> actions;
-	regexes.push_back("\\+");
+	/*regexes.push_back("\\+");
 	actions.push_back("+");
 	regexes.push_back("-");
 	actions.push_back("-");
@@ -170,7 +170,11 @@ void TestOptimizer::test_mini_mini_c()
 	actions.push_back("}");
 
 	regexes.push_back("[_a-zA-Z][_a-zA-Z0-9]*");
-	actions.push_back("id");
+	actions.push_back("id");*/
+	// TODO： 下面的表达式无法执行 原因在E开始的部分 需要进一步debug
+	regexes.push_back("[0-9]+(.[0-9]*)?(E(+|-)?[0-9]+)?");
+	actions.push_back("real");
+	
 
 	NFA nfa;
 	nfa.create_from_regexes(regexes, actions);
@@ -183,5 +187,5 @@ void TestOptimizer::test_mini_mini_c()
 	o.print_min_dfa_trans();
 
 	DFA dfa(o.get_min_dfa_trans(), o.get_min_dfa_actions());
-	dfa.scan(" main - const + void | | void { += a * c }");
+	dfa.scan("11.23");
 }

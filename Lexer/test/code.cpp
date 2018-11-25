@@ -24,8 +24,8 @@ public:
 
 
 int main() { 
-    typedef int myInt;
-    myInt myNum = 10;
+    typedef double myDouble;
+    myDouble myNum = 10.5;
     char c = 'a';
     const int hisNum = (int) c;
     int herNum = myNum - hisNum;

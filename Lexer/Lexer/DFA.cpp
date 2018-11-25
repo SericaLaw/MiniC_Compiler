@@ -22,6 +22,40 @@ DFA::DFA(map<pair<int, int>, int> trans, vector<string> actions)
 			break;
 		}
 	}
+	/* keywords */
+	// type specifier
+	symbol_table.push_back("int");
+	symbol_table.push_back("char");
+	symbol_table.push_back("bool");
+	symbol_table.push_back("void");
+	symbol_table.push_back("struct");
+	symbol_table.push_back("enum");
+	symbol_table.push_back("class");
+	symbol_table.push_back("public");
+	symbol_table.push_back("private");
+	// storage class specifier
+	symbol_table.push_back("typedef");
+	symbol_table.push_back("static");
+	// type qualifier
+	symbol_table.push_back("const");
+	// statements
+	symbol_table.push_back("if");
+	symbol_table.push_back("else");
+	symbol_table.push_back("switch");
+	symbol_table.push_back("case");
+	symbol_table.push_back("default");
+	symbol_table.push_back("for");
+	symbol_table.push_back("do");
+	symbol_table.push_back("while");
+	symbol_table.push_back("break");
+	symbol_table.push_back("continue");
+	symbol_table.push_back("return");
+	symbol_table.push_back("this");
+	symbol_table.push_back("new");
+	symbol_table.push_back("delete");
+	symbol_table.push_back("friend");
+	symbol_table.push_back("true");
+	symbol_table.push_back("false");
 }
 
 void DFA::scan(const string & code)
@@ -51,11 +85,12 @@ void DFA::scan(const string & code)
 		// 到达源代码末尾
 		if (peek_forward >= N)
 			return;
-		cnt_offset++; 	// 找到了一个单词的开始位置，行内字符序号加1
-		lexeme_begin = peek_forward; 		// 找到了一个单词的开始位置，用p记住它
+		cnt_offset++; // 找到了一个词素起始点，行内字符序号加1，记录
+		lexeme_begin = peek_forward; 		
 
 		int cur_state = start_state;
 		// 最长匹配原则
+		// TODO: 这里有没有考虑全的情况 需要修复
 		do {
 			cur_state = move(cur_state, (int)code[peek_forward]);
 			if (cur_state == -1) {
@@ -64,13 +99,13 @@ void DFA::scan(const string & code)
 			peek_forward++;
 			cnt_offset++;
 		} while (peek_forward < N && actions[cur_state] == "");
-		// 到达文本末尾，但是状态没到达终结状态
+		// 读到程序结尾，但是状态是非接受状态
 		if (cur_state != -1 && actions[cur_state] == "") {
 			cout << "error2 orrcurs!\n";
 		}
-		// 从这个终结结点开始，继续走过连续的终结结点，直至走到一个非终结结点或达到死状态phai
+		// 从该接受状态开始，继续走过连续的接收状态，直至走到一个非终结状态或达到死状态phai
 		if (cur_state != -1 && actions[cur_state] != "") {
-			// 用mark来标记真正的终结结点
+			// 用mark来标记最后到达的接收状态（最长匹配）
 			int mark = cur_state;
 			while (peek_forward < N) {
 				cur_state = move(cur_state, (int)code[peek_forward]);
@@ -81,6 +116,16 @@ void DFA::scan(const string & code)
 				peek_forward++;
 			}
 
+			// 处理符号表
+			string attribute = actions[mark];
+			string value = code.substr(lexeme_begin, peek_forward - lexeme_begin);
+			if (attribute == "id") {
+				if (find(symbol_table.begin(), symbol_table.end(), value) != symbol_table.end()) {
+					// 如果是保留字
+					cout << "< " << id++ << "\t" << value << "\t" << value << " >" << endl;
+					continue;
+				}
+			}
 			cout << "< " << id++ << "\t" << actions[mark] << "\t" << code.substr(lexeme_begin, peek_forward - lexeme_begin) << " >" << endl;
 		}
 	}

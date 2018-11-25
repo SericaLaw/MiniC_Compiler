@@ -87,7 +87,6 @@ void Optimizer::build_dfa(NFA & nfa)
 	set<FANode*> t_closure = epsilon_closure(t);
 	d_states.push_back(t_closure);
 
-	//string action = get_action(t_closure);
 	d_actions.push_back("start");
 
 	alphabet = nfa.get_alphabet();
@@ -160,11 +159,9 @@ void Optimizer::minimize_dfa()
 	 * vector<int> groups 记录当前迭代时各个状态对应的组号，迭代前不清空
 	 * vector<pair<int, int>> min_dfa_trans 记录各个组的状态转换表，注意到这个转换表最终将变成min dfa的转换表，迭代前清空
 	 * vector<string> min_dfa_actions 迭代前清空
-	 * vector<int> group_trans_mark 记录各个组在当前迭代中有没有被初始化 - 不需要
 	 * has_changed 记录当前迭代有没有新的划分，若为false则迭代结束
 	 * 
 	 * attention: 终结状态集是否可以正确分组？ 现在还不能！
-	 * TODO 下面的算法有问题啊啊啊啊啊啊啊 还是应该保留上一次的min_dfa_trans 龙书p116 新的划分依据和上一次的分组有关！
 	*/
 	assert(d_states.size() == d_actions.size());
 	
@@ -231,7 +228,7 @@ void Optimizer::minimize_dfa()
 				}
 			}					
 		}
-		// 分配新的组号，对于new_group_mark中不为-1的状态标记，给相同的标记以相同的新的组号，分配好新组号后置位-1
+		// 分配新的组号，对于new_group_mark中不为-1的状态标记，给相同的标记以相同的新的组号，分配好新组号后置为-1
 		while (find_if(new_group_mark.begin(), new_group_mark.end(), [](int x) -> bool { return x != -1; }) != new_group_mark.end()) {
 			int i = 0;
 			while (i < new_group_mark.size() && new_group_mark[i] == -1) {
