@@ -13,6 +13,7 @@ public:
 	static SyntaxParser test_first();
 	static SyntaxParser test_follow();
 	static SyntaxParser test_build_LL_1_parsing_table();
+	static SyntaxParser test_parse_by_LL_1();
 };
 
 template<typename T>

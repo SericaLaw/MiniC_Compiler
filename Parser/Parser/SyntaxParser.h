@@ -28,6 +28,9 @@ public:
 	void calc_follow();
 	/* 龙书p143 */
 	void build_LL_1_parsing_table();
+	/* 龙书p144 */
+	// TODO：注意下面的w实际上是token序列，这只是暂时用string代替
+	void parse_by_LL_1(vector<string> w);
 public:
 	/* debug */
 	void print_production(int index);
@@ -50,6 +53,7 @@ private:
 	
 	/* 判断是否是终结符 */
 	bool is_vt(int x);
+	bool is_vt(string s);
 	
 };
 

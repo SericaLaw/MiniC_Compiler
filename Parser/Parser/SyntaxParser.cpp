@@ -180,20 +180,8 @@ void SyntaxParser::build_LL_1_parsing_table()
 {
 	for (auto prod = productions.begin(), prod_end = productions.end(); prod != prod_end; ++prod) {
 		// 对于文法G的每个产生式A->alpha
-		vector<int> alpha = vector<int>(prod->body.begin(), prod->body.end());
-		set<int> first_alpha = first(alpha);
-		cout << "First ";
-		print_production(prod->index);
-		cout << " = ";
-		for (auto s : first_alpha) {
-			if (s == EPSILON)
-				cout << "epsilon" << " ";
-			else if (s == DOLLAR)
-				cout << "$" << " ";
-			else
-				cout << symbols[s] << " ";
-		}
-		cout << endl;
+		set<int> first_alpha = first(prod->body);
+
 		for (auto s = first_alpha.begin(), s_end = first_alpha.end(); s != s_end; ++s) {
 			// 对于FIRST(alpha)中的每个终结符号a，把A->alpha加入M[A, a]中
 			if (is_vt(*s)) {
@@ -215,6 +203,50 @@ void SyntaxParser::build_LL_1_parsing_table()
 			}
 		}
 
+	}
+}
+
+void SyntaxParser::parse_by_LL_1(vector<string> w)
+{
+	w.push_back("$");
+	stack<string> s;
+	s.push("$");
+	s.push(symbols[0]);
+	auto ip = w.begin();
+	string X = s.top();
+	while (X != "$") {
+		// 如果X是终结符且和ip所指的符号相同则出栈
+		if (X == *ip) {
+			s.pop();
+			++ip;
+		}
+		// 如果X是终结符却和ip所指符号不同，报错
+		else if (is_vt(X)) {
+			cout << "error\n";
+		}
+		// 如果M[X, a]是报错条目
+		// hmm... 下面这么复杂也是因为把$单独拿出符号表的造成的...也许$应该还是放进符号表里吧...
+		// $ epsilon出现的情况考虑不好就会有一堆bug呢...
+		else if ((*ip != "$" && M.count(pair<int, int>(vn_map[X], vt_map[*ip])) == 0) || 
+				(*ip == "$" && M.count(pair<int, int>(vn_map[X], DOLLAR)) == 0)) {
+			cout << "error\n";
+		}
+		else {
+			unsigned int prod_index;
+			if(*ip == "$")
+				prod_index = M[pair<int, int>(vn_map[X], DOLLAR)];
+			else
+				prod_index = M[pair<int, int>(vn_map[X], vt_map[*ip])];
+			print_production(prod_index);
+			cout << endl;
+			s.pop();
+			Production p = productions[prod_index];
+			for (int i = p.body.size() - 1; i >= 0; --i) {
+				if(p.body[i] != EPSILON) // 如果不是空产生式才入栈
+					s.push(symbols[p.body[i]]);
+			}
+		}
+		X = s.top();
 	}
 }
 
@@ -370,3 +402,12 @@ bool SyntaxParser::is_vt(int x)
 		return false;
 	return vt_map.count(symbols[x]) == 1;
 }
+
+bool SyntaxParser::is_vt(string s)
+{
+	if (s == "epsilon" || s == "$")
+		return false;
+	return vt_map.count(s) == 1;
+}
+
+

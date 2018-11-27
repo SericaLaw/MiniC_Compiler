@@ -54,3 +54,16 @@ SyntaxParser UnitTest::test_build_LL_1_parsing_table()
 	parser.print_LL_1_parsing_table();
 	return parser;
 }
+
+SyntaxParser UnitTest::test_parse_by_LL_1()
+{
+	SyntaxParser parser = test_build_LL_1_parsing_table();
+	vector<string>w;
+	w.push_back("id");
+	w.push_back("+");
+	w.push_back("id");
+	w.push_back("*");
+	w.push_back("id");
+	parser.parse_by_LL_1(w);
+	return parser;
+}
