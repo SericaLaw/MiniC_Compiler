@@ -29,6 +29,10 @@ void SyntaxParser::print_productions()
 		cout << p.index << ": " << symbols[p.head] << " =>";
 		assert(vn_map[symbols[p.head]] == p.head);
 		for (int s : p.body) {
+			if (s == EPSILON) {
+				cout << " 'epsilon'";
+				continue;
+			}
 			string symbol = symbols[s];
 			if (vn_map.count(symbol) == 1) {
 				cout << " " << symbol;
@@ -48,8 +52,29 @@ void SyntaxParser::print_first_map()
 	for (auto vn : vn_map) {
 		cout << "First("<<vn.first<<") = { ";
 		auto first_set = first_map[vn.second];
-		for (auto ele : first_set)
-			cout << symbols[ele] << " ";
+		for (auto ele : first_set) {
+			if(ele == EPSILON)
+				cout << "epsilon" << " ";
+			else
+				cout << symbols[ele] << " ";
+		}
+		cout << "}\n";
+	}
+}
+
+void SyntaxParser::print_follow_map()
+{
+	for (auto vn : vn_map) {
+		cout << "Follow(" << vn.first << ") = { ";
+		auto follow_set = follow_map[vn.second];
+		for (auto ele : follow_set) {
+			if (ele == EPSILON)
+				cout << "epsilon" << " ";
+			else if (ele == DOLLAR)
+				cout << "$ " << " ";
+			else
+				cout << symbols[ele] << " ";
+		}
 		cout << "}\n";
 	}
 }
@@ -72,6 +97,9 @@ int SyntaxParser::insert_vn(const string & vn)
 
 int SyntaxParser::insert_vt(const string & vt)
 {
+	// 空产生式
+	if (vt == "epsilon")
+		return EPSILON;
 	int index;
 	if (vt_map.count(vt) == 0) {
 		// 没有在符号表中出现
@@ -88,6 +116,7 @@ int SyntaxParser::insert_vt(const string & vt)
 void SyntaxParser::add_production(const string& head, vector<string>& body)
 {
 	Production p;
+	// 头部赋值为非终结符head的索引
 	p.head = insert_vn(head);
 	for (string s : body) {
 		auto s_split = Tool::split(s, "'");
@@ -97,6 +126,7 @@ void SyntaxParser::add_production(const string& head, vector<string>& body)
 			p.body.push_back(insert_vn(s_split[0]));
 		}
 		else {
+			// 非终结符
 			p.body.push_back(insert_vt(s_split[0]));
 		}
 	}
@@ -108,6 +138,12 @@ void SyntaxParser::calc_first()
 {
 	for (auto vn : vn_map)
 		first(vn.second);
+}
+
+void SyntaxParser::calc_follow()
+{
+	for (auto vn : vn_map)
+		follow(vn.second);
 }
 
 set<int> SyntaxParser::first(int X)
@@ -128,14 +164,14 @@ set<int> SyntaxParser::first(int X)
 	}
 	else {
 		// 对所有X为产生式头部的产生式进行操作
-		for (auto prod = productions.begin(), last_prod = productions.end();
-				prod != last_prod; ++prod) {
+		for (auto prod = productions.begin(), prod_end = productions.end();
+				prod != prod_end; ++prod) {
 			if (prod->head == X) {
 				// 对产生式体中所有符号进行操作
 				if (prod->body[0] == X) // 如果是空产生式或左递归则不考虑该产生式
 					continue;
 				
-				int last_s = prod->body.back();
+				int s_end = prod->body.back();
 
 				for (int s : prod->body) {
 					if (is_vt(s)) {
@@ -159,7 +195,7 @@ set<int> SyntaxParser::first(int X)
 							// A是非终结符且会产生空串，则把FIRST(A)-{epsilon}加入FIRST(X)
 							first_A.erase(find(first_A.begin(), first_A.end(), EPSILON));
 							first_X.insert(first_A.begin(), first_A.end());
-							if (s == last_s) {
+							if (s == s_end) {
 								// X->A1...An中 A1..An都会产生空串则加入epsilon（如果前面有不会的已经break跳出了）
 								assert(first_X.count(EPSILON) == 0);
 								first_X.insert(EPSILON);
@@ -174,12 +210,87 @@ set<int> SyntaxParser::first(int X)
 	return first_X;
 }
 
-set<int> SyntaxParser::follow(int symbol)
+// 龙书p140
+set<int> SyntaxParser::first(vector<int>& beta)
 {
-	return set<int>();
+	set<int> first_beta;
+	for (auto s = beta.begin(), s_end = beta.end(); s != s_end; ++s) {
+		set<int> first_s = first(*s);
+		if (first_s.count(EPSILON) == 0) {
+			first_beta.insert(first_s.begin(), first_s.end());
+			break;
+		}
+		else {
+			// s产生空串 FIRST_BETA = FIRST_BETA ∪ FIRST_S - { epsilon }
+			first_s.erase(find(first_s.begin(), first_s.end(), EPSILON));
+			first_beta.insert(first_s.begin(), first_s.end());
+			if (s + 1 == s_end) {
+				assert(first_beta.count(EPSILON) == 0);
+				first_beta.insert(EPSILON);
+			}
+		}
+	}
+	return first_beta;
+}
+
+// 龙书p141
+set<int> SyntaxParser::follow(int X)
+{
+	auto found = follow_map.find(X);
+	if (found != follow_map.end())
+		return found->second;
+	else
+		// 这句初始化十分关键！形如E-> TE的式子，要求FOLLOW(E)时若没有这句初始化 则会陷入不断求FOLLOW(E)的死循环
+		follow_map[X] = set<int>();
+	// $加入FOLLOW(S)，其中$是开始符号，$是右端的结束标记
+
+	
+	
+	
+	set<int> follow_X;
+	if (X == productions[0].head) {
+		follow_X.insert(DOLLAR);
+	}
+	// 性能起见，应该少用冒号迭代，尤其是对于复杂对象 多使用迭代器或下标，且用++it代替it++
+	// 遍历所有形如 A->aX，A->aXb的式子
+	for (auto prod = productions.begin(), prod_end = productions.end(); prod != prod_end; ++prod) {
+		for (auto s = prod->body.begin(), s_end = prod->body.end(); s != s_end; ++s) {
+			if (X == *s) {
+				auto next = s;
+				++next;
+				if (next == s_end) {
+					// A->aX
+					set<int> follow_A = follow(prod->head);
+					follow_X.insert(follow_A.begin(), follow_A.end());
+				}
+				else {
+					// A->aXb
+					vector<int> beta(next, s_end);
+					set<int> first_beta = first(beta);
+					if (first_beta.count(EPSILON) == 0) {
+						follow_X.insert(first_beta.begin(), first_beta.end());
+					}
+					else {
+						// b =*=> epsilon
+						first_beta.erase(find(first_beta.begin(), first_beta.end(), EPSILON));
+						follow_X.insert(first_beta.begin(), first_beta.end());
+						set<int> follow_A = follow(prod->head);
+						follow_X.insert(follow_A.begin(), follow_A.end());
+					}
+					break;
+				}
+			}
+			
+		}
+	}
+	follow_map[X] = follow_X;
+	return follow_X;
 }
 
 bool SyntaxParser::is_vt(int x)
 {
+	// TODO: 这里对于DOLLAR还须进一步讨论
+	if (x == EPSILON || x == DOLLAR)
+		return false;
 	return vt_map.count(symbols[x]) == 1;
 }

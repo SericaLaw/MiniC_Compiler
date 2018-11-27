@@ -11,6 +11,7 @@ public:
 public:
 	static SyntaxParser test_add_production();
 	static SyntaxParser test_first();
+	static SyntaxParser test_follow();
 };
 
 template<typename T>
