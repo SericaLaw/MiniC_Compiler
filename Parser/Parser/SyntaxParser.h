@@ -14,6 +14,9 @@ private:
 	vector<Production> productions;
 	map<int, set<int>> first_map;
 	map<int, set<int>> follow_map;
+
+	// LL_1_table[A, a] = a production or error
+	map<pair<int, int>, unsigned int> M;
 public:
 	SyntaxParser();
 	~SyntaxParser();
@@ -23,11 +26,15 @@ public:
 	void calc_first();
 	/* 对所有非终结符求FOLLOW 必须要先求好FIRST */
 	void calc_follow();
+	/* 龙书p143 */
+	void build_LL_1_parsing_table();
 public:
 	/* debug */
+	void print_production(int index);
 	void print_productions();
 	void print_first_map();
 	void print_follow_map();
+	void print_LL_1_parsing_table();
 private:
 	/* 插入非终结符并返回其在symbols中的索引 */
 	int insert_vn(const string& vn);

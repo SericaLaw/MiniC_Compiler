@@ -3,6 +3,6 @@
 struct Production {
 	int head;
 	vector<int> body;
-	int index;
+	unsigned int index;
 	int op;
 };

@@ -46,3 +46,11 @@ SyntaxParser UnitTest::test_follow()
 	parser.print_follow_map();
 	return parser;
 }
+
+SyntaxParser UnitTest::test_build_LL_1_parsing_table()
+{
+	SyntaxParser parser = test_follow();
+	parser.build_LL_1_parsing_table();
+	parser.print_LL_1_parsing_table();
+	return parser;
+}

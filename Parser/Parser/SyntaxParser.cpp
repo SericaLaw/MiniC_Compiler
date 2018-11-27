@@ -23,26 +23,33 @@ void SyntaxParser::add_production(const string& p)
 	add_production(head, body);
 }
 
+// 该函数顺便验证了映射对应关系的正确性
+void SyntaxParser::print_production(int index)
+{
+	Production p = productions[index];
+	cout << p.index << ": " << symbols[p.head] << " =>";
+	assert(vn_map[symbols[p.head]] == p.head);
+	for (int s : p.body) {
+		if (s == EPSILON) {
+			cout << " 'epsilon'";
+			continue;
+		}
+		string symbol = symbols[s];
+		if (vn_map.count(symbol) == 1) {
+			cout << " " << symbol;
+			assert(vn_map[symbol] == s);
+		}
+		else if (vt_map.count(symbol) == 1) {
+			cout << " '" << symbol << "'";
+			assert(vt_map[symbol] == s);
+		}
+	}
+}
+
 void SyntaxParser::print_productions()
 {
-	for (Production p : productions) {
-		cout << p.index << ": " << symbols[p.head] << " =>";
-		assert(vn_map[symbols[p.head]] == p.head);
-		for (int s : p.body) {
-			if (s == EPSILON) {
-				cout << " 'epsilon'";
-				continue;
-			}
-			string symbol = symbols[s];
-			if (vn_map.count(symbol) == 1) {
-				cout << " " << symbol;
-				assert(vn_map[symbol] == s);
-			}
-			else if (vt_map.count(symbol) == 1) {
-				cout << " '" << symbol << "'";
-				assert(vt_map[symbol] == s);
-			}
-		}
+	for (int i = 0, n = productions.size(); i < n; ++i) {
+		print_production(i);
 		cout << endl;
 	}
 }
@@ -71,11 +78,34 @@ void SyntaxParser::print_follow_map()
 			if (ele == EPSILON)
 				cout << "epsilon" << " ";
 			else if (ele == DOLLAR)
-				cout << "$ " << " ";
+				cout << "$" << " ";
 			else
 				cout << symbols[ele] << " ";
 		}
 		cout << "}\n";
+	}
+}
+
+void SyntaxParser::print_LL_1_parsing_table()
+{
+	for (auto vn : vn_map) {
+		cout << vn.first<<":\t";
+		for (auto vt : vt_map) {
+			if (M.count(pair<int, int>(vn.second, vt.second)) == 1) {
+				int prod_index = M[pair<int, int>(vn.second, vt.second)];
+				cout << "(" << vt.first <<": ";
+				print_production(prod_index);
+				cout << ")\t";
+			}
+		}
+		// do not forget $
+		if (M.count(pair<int, int>(vn.second, DOLLAR)) == 1) {
+			int prod_index = M[pair<int, int>(vn.second, DOLLAR)];
+			cout << "($: ";
+			print_production(prod_index);
+			cout << ")\t";
+		}
+		cout << endl;
 	}
 }
 
@@ -146,6 +176,48 @@ void SyntaxParser::calc_follow()
 		follow(vn.second);
 }
 
+void SyntaxParser::build_LL_1_parsing_table()
+{
+	for (auto prod = productions.begin(), prod_end = productions.end(); prod != prod_end; ++prod) {
+		// 对于文法G的每个产生式A->alpha
+		vector<int> alpha = vector<int>(prod->body.begin(), prod->body.end());
+		set<int> first_alpha = first(alpha);
+		cout << "First ";
+		print_production(prod->index);
+		cout << " = ";
+		for (auto s : first_alpha) {
+			if (s == EPSILON)
+				cout << "epsilon" << " ";
+			else if (s == DOLLAR)
+				cout << "$" << " ";
+			else
+				cout << symbols[s] << " ";
+		}
+		cout << endl;
+		for (auto s = first_alpha.begin(), s_end = first_alpha.end(); s != s_end; ++s) {
+			// 对于FIRST(alpha)中的每个终结符号a，把A->alpha加入M[A, a]中
+			if (is_vt(*s)) {
+				// 这里要求is_vt(epsilon)==false
+				// TODO: emm.. production里的index其实可以删掉
+				M[pair<int, int>(prod->head, *s)] = prod->index;
+			}
+		}
+		// 如果epsilon在FIRST(alpha)中，那么对于FOLLOW(A)中的每个终结符号b，将A->alpha加入到M[A,b]中
+		// 如果epsilon在FIRST(alpha)中，且$在FOLLOW(A)中，将A->alpha加入M[A, $]中 这里注意到is_vt($) == false
+		if (first_alpha.count(EPSILON) == 1) {
+			set<int> follow_A = follow(prod->head);
+			for (auto s = follow_A.begin(), s_end = follow_A.end(); s != s_end; ++s) {
+				if (is_vt(*s))
+					M[pair<int, int>(prod->head, *s)] = prod->index;
+			}
+			if (follow_A.count(DOLLAR) == 1) {
+				M[pair<int, int>(prod->head, DOLLAR)] = prod->index;
+			}
+		}
+
+	}
+}
+
 set<int> SyntaxParser::first(int X)
 {
 	// 递归求FIRST(X)，这种情况下调用一次就可以求完整
@@ -214,6 +286,12 @@ set<int> SyntaxParser::first(int X)
 set<int> SyntaxParser::first(vector<int>& beta)
 {
 	set<int> first_beta;
+	// 传入了空产生式
+	if (beta[0] == EPSILON) {
+		first_beta.insert(EPSILON);
+		return first_beta;
+	}
+		
 	for (auto s = beta.begin(), s_end = beta.end(); s != s_end; ++s) {
 		set<int> first_s = first(*s);
 		if (first_s.count(EPSILON) == 0) {
@@ -241,12 +319,10 @@ set<int> SyntaxParser::follow(int X)
 		return found->second;
 	else
 		// 这句初始化十分关键！形如E-> TE的式子，要求FOLLOW(E)时若没有这句初始化 则会陷入不断求FOLLOW(E)的死循环
+		// 加入初始化，每个非终结符的follow只会在最顶部的递归中求一次
 		follow_map[X] = set<int>();
-	// $加入FOLLOW(S)，其中$是开始符号，$是右端的结束标记
 
-	
-	
-	
+	// $加入FOLLOW(S)，其中$是开始符号，$是右端的结束标记	
 	set<int> follow_X;
 	if (X == productions[0].head) {
 		follow_X.insert(DOLLAR);
