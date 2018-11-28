@@ -61,7 +61,7 @@ DFA::DFA(map<pair<int, int>, int> trans, vector<string> actions)
 void DFA::scan(const string & code)
 {
 	int cnt_line = 1; // 当前行号，可用于报错
-	int cnt_offset = 0; // 当前行内偏移，可用于报错
+	int cnt_offset = 1; // 当前行内偏移，可用于报错
 	int id = 0; // id，用于token输出
 
 	int lexeme_begin = 0; // 词素起始位置
@@ -74,7 +74,7 @@ void DFA::scan(const string & code)
 			if (code[peek_forward] == '\n') {
 				// 换行符，行号加一，行内偏移量归零
 				cnt_line++;
-				cnt_offset = 0;
+				cnt_offset = 1;
 			}
 			else {
 				// 碰到空格或tab
@@ -94,17 +94,20 @@ void DFA::scan(const string & code)
 		do {
 			cur_state = move(cur_state, (int)code[peek_forward]);
 			if (cur_state == -1) {
-				cout << "error1 occurs!\n";
+				output_error(cnt_line, cnt_offset, code.substr(lexeme_begin, peek_forward - lexeme_begin + 1));
+				cnt_offset -= 2;
+				peek_forward++;
+				break;
 			}
 			peek_forward++;
 			cnt_offset++;
 		} while (peek_forward < N && actions[cur_state] == "");
 		// 读到程序结尾，但是状态是非接受状态
-		if (cur_state != -1 && actions[cur_state] == "") {
-			cout << "error2 orrcurs!\n";
+		if (cur_state != -1 && (actions[cur_state] == "" || actions[cur_state] == "phai")) {
+			output_error(cnt_line, cnt_offset - 1, code.substr(lexeme_begin, peek_forward - lexeme_begin));
 		}
 		// 从该接受状态开始，继续走过连续的接收状态，直至走到一个非终结状态或达到死状态phai
-		if (cur_state != -1 && actions[cur_state] != "") {
+		if (cur_state != -1 && actions[cur_state] != "" && actions[cur_state] != "phai") {
 			// 用mark来标记最后到达的接收状态（最长匹配）
 			int mark = cur_state;
 			while (peek_forward < N) {
@@ -122,13 +125,23 @@ void DFA::scan(const string & code)
 			if (attribute == "id") {
 				if (find(symbol_table.begin(), symbol_table.end(), value) != symbol_table.end()) {
 					// 如果是保留字
-					cout << "< " << id++ << "\t" << value << "\t" << value << " >" << endl;
+					output_res(id++, value, value);
 					continue;
 				}
 			}
-			cout << "< " << id++ << "\t" << actions[mark] << "\t" << code.substr(lexeme_begin, peek_forward - lexeme_begin) << " >" << endl;
+			output_res(id++, actions[mark], code.substr(lexeme_begin, peek_forward - lexeme_begin));
 		}
 	}
+}
+
+void DFA::output_res(int id, const string & lexeme, const string & word)
+{
+	cout << "< " << id << "\t" << lexeme << "\t" << word << " >" << endl;
+}
+
+void DFA::output_error(int line, int offset, const string & word)
+{
+	cout << "error occurs in line (" << line << ", " << offset << "): " << word << endl;
 }
 
 int DFA::move(int state, int step)

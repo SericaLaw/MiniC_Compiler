@@ -27,8 +27,8 @@ int main() {
     typedef double myDouble;
     myDouble myNum = 10.5;
     char c = 'a';
-    const int hisNum = (int) c;
-    int herNum = myNum - hisNum;
+    const int $hisNum = (int) c;
+    int herNum = myNum - $hisNum;
     bool flag = true;
     do {
         myNum %= 22;
@@ -45,7 +45,7 @@ int main() {
             herNum++;
             continue;
         }
-        myNum = (myNum != hisNum ? ++myNum : --myNum);
+        myNum = (myNum != $hisNum ? ++myNum : --myNum);
     }
     switch(herNum) {
         case 10:

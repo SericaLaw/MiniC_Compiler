@@ -14,11 +14,6 @@ UnitTest::~UnitTest()
 SyntaxParser UnitTest::test_add_production()
 {
 	SyntaxParser parser;
-	//parser.add_production("expr : expr '+' expr");
-	//parser.add_production("expr : expr '-' expr");
-	//parser.add_production("expr : expr '*' expr");
-	//parser.add_production("expr : expr '/' expr");
-	//parser.add_production("expr : 'num'");
 	parser.add_production("E : T E`");
 	parser.add_production("E` : '+' T E` | 'epsilon'");
 	parser.add_production("T : F T`");

@@ -1,5 +1,7 @@
 #pragma once
-#include "stdafx.h"
+#include <vector>
+using std::vector;
+
 struct Production {
 	int head;
 	vector<int> body;

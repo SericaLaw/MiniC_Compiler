@@ -1,4 +1,15 @@
 #pragma once
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <set>
+#include <cassert>
+#include <stack>
+#include "Production.h"
+#include "../../Common/Tool.h"
+using namespace std;
+
 class SyntaxParser
 {
 private:
