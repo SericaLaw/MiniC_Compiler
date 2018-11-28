@@ -29,7 +29,7 @@ public:
 	/* 龙书p143 */
 	void build_LL_1_parsing_table();
 	/* 龙书p144 */
-	// TODO：注意下面的w实际上是token序列，这只是暂时用string代替
+	// TODO：注意下面的w实际上是token序列，这只是暂时用string代替 需要消除左递归
 	void parse_by_LL_1(vector<string> w);
 public:
 	/* debug */
@@ -38,6 +38,8 @@ public:
 	void print_first_map();
 	void print_follow_map();
 	void print_LL_1_parsing_table();
+
+	void add_mini_c_production();
 private:
 	/* 插入非终结符并返回其在symbols中的索引 */
 	int insert_vn(const string& vn);

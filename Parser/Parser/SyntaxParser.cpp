@@ -11,16 +11,26 @@ SyntaxParser::~SyntaxParser()
 {
 }
 
-// p满足yacc规范，例如 expr : expr '+' expr
+// p满足yacc规范，例如 expr : expr '+' expr | expr '-' expr
 // 暂时不支持空产生式
 void SyntaxParser::add_production(const string& p)
 {
-	vector<string> p_split = Tool::split(p, " ");
-	assert(p_split.size() >= 3); // 至少有三项：head, :, body
-	assert(p_split[1] == ":");
-	string head = p_split[0];
-	vector<string> body(p_split.begin() + 2, p_split.end());
+	vector<string> productions = Tool::split(p, "|");
+	// 对第一个产生式单独处理
+	vector<string> first = Tool::split(productions[0], " ");
+	assert(first.size() >= 3);
+	assert(first[1] == ":");
+
+	string head = first[0];
+	vector<string> body(first.begin() + 2, first.end());
 	add_production(head, body);
+
+	for (int i = 1, n = productions.size(); i < n; ++i) {
+		// 对于单个产生式 形如expr : expr '+' expr
+		vector<string> body = Tool::split(productions[i], " ");
+		assert(body.size() >= 1); // 至少有三项：head, :, body
+		add_production(head, body);
+	}
 }
 
 // 该函数顺便验证了映射对应关系的正确性
@@ -109,6 +119,40 @@ void SyntaxParser::print_LL_1_parsing_table()
 	}
 }
 
+void SyntaxParser::add_mini_c_production()
+{
+	add_production("program : stmts"); // 程序
+	add_production("stmts : stmt stmts | 'epsilon'");
+	// if...else...
+	add_production("stmt : 'if' '(' logical-expression ')' stmt 'else' stmt");
+	// while...
+	//add_production("stmt : 'while' '(' logic-expression ')' stmt");
+	// return...
+	//add_production("stmt : 'return' arithmetic-expression ';'");
+	// 赋值语句
+	add_production("stmt : assignment-expression ';'");
+	// block
+	add_production("stmt : block");
+	// 声明语句
+	add_production("stmt : declarations");
+
+	/* block */
+	add_production("block : '{' stmts '}'");
+
+	/* expr */
+	add_production("expression : assignment-expression | arithmetic-expression | logical-expression");
+
+	add_production("assignment-expression : identifier '=' arithmetic-expression");
+	add_production("arithmetic-expression : identifier a` | number a`");
+	add_production("a` : '+' arithmetic-expression a` | '-' arithmetic-expression a` | 'epsilon'");
+	//add_production("arithmetic-expression : arithmetic-expression '+' arithmetic-expression | arithmetic-expression '-' arithmetic-expression | identifier | number ");
+	add_production("logical-expression : 'true' | 'false'");
+	add_production("logical-expression : arithmetic-expression '==' arithmetic-expression");
+	/* identifier */
+	add_production("identifier : 'id'");
+	add_production("number : 'num'");
+}
+
 // !important 这里不允许插入epsilon
 int SyntaxParser::insert_vn(const string & vn)
 {
@@ -187,7 +231,12 @@ void SyntaxParser::build_LL_1_parsing_table()
 			if (is_vt(*s)) {
 				// 这里要求is_vt(epsilon)==false
 				// TODO: emm.. production里的index其实可以删掉
-				M[pair<int, int>(prod->head, *s)] = prod->index;
+				if (M.count(pair<int, int>(prod->head, *s)) == 0)
+					M[pair<int, int>(prod->head, *s)] = prod->index;
+				else {
+					cout << "WARNING: The grammar is not LL(1)!";
+					break;
+				}
 			}
 		}
 		// 如果epsilon在FIRST(alpha)中，那么对于FOLLOW(A)中的每个终结符号b，将A->alpha加入到M[A,b]中
@@ -195,11 +244,22 @@ void SyntaxParser::build_LL_1_parsing_table()
 		if (first_alpha.count(EPSILON) == 1) {
 			set<int> follow_A = follow(prod->head);
 			for (auto s = follow_A.begin(), s_end = follow_A.end(); s != s_end; ++s) {
-				if (is_vt(*s))
-					M[pair<int, int>(prod->head, *s)] = prod->index;
+				if (is_vt(*s)) {
+					if(M.count(pair<int, int>(prod->head, *s)) == 0)
+						M[pair<int, int>(prod->head, *s)] = prod->index;
+					else {
+						cout << "WARNING: The grammar is not LL(1)!";
+						break;
+					}					
+				}
 			}
 			if (follow_A.count(DOLLAR) == 1) {
-				M[pair<int, int>(prod->head, DOLLAR)] = prod->index;
+				if(M.count(pair<int, int>(prod->head, DOLLAR)) == 0)
+					M[pair<int, int>(prod->head, DOLLAR)] = prod->index;
+				else {
+					cout << "WARNING: The grammar is not LL(1)!";
+					break;
+				}
 			}
 		}
 
@@ -217,6 +277,7 @@ void SyntaxParser::parse_by_LL_1(vector<string> w)
 	while (X != "$") {
 		// 如果X是终结符且和ip所指的符号相同则出栈
 		if (X == *ip) {
+			cout << "match " << s.top() << endl;
 			s.pop();
 			++ip;
 		}

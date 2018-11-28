@@ -20,13 +20,10 @@ SyntaxParser UnitTest::test_add_production()
 	//parser.add_production("expr : expr '/' expr");
 	//parser.add_production("expr : 'num'");
 	parser.add_production("E : T E`");
-	parser.add_production("E` : '+' T E`");
-	parser.add_production("E` : 'epsilon'");
+	parser.add_production("E` : '+' T E` | 'epsilon'");
 	parser.add_production("T : F T`");
-	parser.add_production("T` : '*' F T`");
-	parser.add_production("T` : 'epsilon'");
-	parser.add_production("F : '(' E ')'");
-	parser.add_production("F : 'id'");
+	parser.add_production("T` : '*' F T` | 'epsilon'");
+	parser.add_production("F : '(' E ')' | 'id'");
 	parser.print_productions();
 	return parser;
 }
@@ -64,6 +61,46 @@ SyntaxParser UnitTest::test_parse_by_LL_1()
 	w.push_back("id");
 	w.push_back("*");
 	w.push_back("id");
+	parser.parse_by_LL_1(w);
+	return parser;
+}
+
+SyntaxParser UnitTest::test_parse_mini_c()
+{
+	SyntaxParser parser;
+	parser.add_mini_c_production();
+	parser.calc_first();
+	parser.calc_follow();
+	parser.build_LL_1_parsing_table();
+
+	parser.print_productions();
+	parser.print_first_map();
+	parser.print_follow_map();
+	parser.print_LL_1_parsing_table();
+	
+	vector<string> w;
+	w.push_back("if");
+	w.push_back("(");
+	w.push_back("true");
+	w.push_back(")");
+	w.push_back("{");
+	w.push_back("id");
+	w.push_back("=");
+	w.push_back("id");
+	w.push_back("+");
+	w.push_back("id");
+	w.push_back(";");
+	w.push_back("}");
+	w.push_back("else");
+	w.push_back("{");
+	w.push_back("id");
+	w.push_back("=");
+	w.push_back("id");
+	w.push_back("-");
+	w.push_back("id");
+	w.push_back(";");
+	w.push_back("}");
+
 	parser.parse_by_LL_1(w);
 	return parser;
 }
