@@ -57,8 +57,10 @@ DFA::DFA(map<pair<int, int>, int> trans, vector<string> actions)
 	symbol_table.push_back("false");
 }
 
-void DFA::scan(const string & code)
+bool DFA::scan(const string & code)
 {
+	tokens.clear();
+	bool suc = true;
 	int cnt_line = 1; // 当前行号，可用于报错
 	int cnt_offset = 1; // 当前行内偏移，可用于报错
 	int id = 0; // id，用于token输出
@@ -83,17 +85,18 @@ void DFA::scan(const string & code)
 		}
 		// 到达源代码末尾
 		if (peek_forward >= N)
-			return;
+			return true;
 		cnt_offset++; // 找到了一个词素起始点，行内字符序号加1，记录
 		lexeme_begin = peek_forward;
 
 		int cur_state = start_state;
 		// 最长匹配原则
-		// TODO: 这里有没有考虑全的情况 需要修复
+		// TODO: 这里有没有考虑全的情况 需要修复 （对于number的匹配 如果多走一步不是接受，走两步就接收了呢？）
 		do {
 			cur_state = move(cur_state, (int)code[peek_forward]);
 			if (cur_state == -1) {
 				output_error(cnt_line, cnt_offset, code.substr(lexeme_begin, peek_forward - lexeme_begin + 1));
+				suc = false;
 				cnt_offset -= 2;
 				peek_forward++;
 				break;
@@ -103,6 +106,7 @@ void DFA::scan(const string & code)
 		} while (peek_forward < N && actions[cur_state] == "");
 		// 读到程序结尾，但是状态是非接受状态
 		if (cur_state != -1 && (actions[cur_state] == "" || actions[cur_state] == "phai")) {
+			suc = false;
 			output_error(cnt_line, cnt_offset - 1, code.substr(lexeme_begin, peek_forward - lexeme_begin));
 		}
 		// 从该接受状态开始，继续走过连续的接收状态，直至走到一个非终结状态或达到死状态phai
@@ -124,13 +128,23 @@ void DFA::scan(const string & code)
 			if (attribute == "id") {
 				if (find(symbol_table.begin(), symbol_table.end(), value) != symbol_table.end()) {
 					// 如果是保留字
+					Token token(value, value, id, cnt_line, cnt_offset);
+					tokens.push_back(token);
 					output_res(id++, value, value);
 					continue;
 				}
 			}
+			Token token(actions[mark], code.substr(lexeme_begin, peek_forward - lexeme_begin), id, cnt_line, cnt_offset);
+			tokens.push_back(token);
 			output_res(id++, actions[mark], code.substr(lexeme_begin, peek_forward - lexeme_begin));
 		}
 	}
+	return suc;
+}
+
+vector<Token> DFA::get_tokens()
+{
+	return tokens;
 }
 
 void DFA::output_res(int id, const string & lexeme, const string & word)

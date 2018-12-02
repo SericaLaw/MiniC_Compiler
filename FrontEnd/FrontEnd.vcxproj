@@ -159,6 +159,9 @@
     <ProjectReference Include="..\Lexer\Lexer.vcxproj">
       <Project>{ab055166-0b50-4f9b-a1e8-72479c51c68d}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Parser\Parser.vcxproj">
+      <Project>{46fe6999-6454-42ff-ba00-d56abbff0393}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

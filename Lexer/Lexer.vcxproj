@@ -26,16 +26,15 @@
     <ClInclude Include="Optimizer.h" />
     <ClInclude Include="Regex.h" />
     <ClInclude Include="RegexOperator.h" />
+    <ClInclude Include="Token.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DFA.cpp" />
     <ClCompile Include="FANode.cpp" />
     <ClCompile Include="Lexer.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="NFA.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="Regex.cpp" />
-    <ClCompile Include="RegexOperator.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

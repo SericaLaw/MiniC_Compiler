@@ -77,17 +77,17 @@ void Lexer::build_mini_c_min_dfa(bool debug)
 
 	// relation
 	regexes.push_back("==");
-	actions.push_back("eq");
+	actions.push_back("==");
 	regexes.push_back("!=");
-	actions.push_back("ne");
+	actions.push_back("!=");
 	regexes.push_back("<");
-	actions.push_back("lt");
+	actions.push_back("<");
 	regexes.push_back(">");
-	actions.push_back("gt");
+	actions.push_back(">");
 	regexes.push_back("<=");
-	actions.push_back("lte");
+	actions.push_back("<=");
 	regexes.push_back(">=");
-	actions.push_back("gte");
+	actions.push_back(">=");
 	/* punctuator */
 	regexes.push_back(":");
 	actions.push_back(":");
@@ -105,27 +105,27 @@ void Lexer::build_mini_c_min_dfa(bool debug)
 	regexes.push_back("'");
 	actions.push_back("'");
 	regexes.push_back("{");
-	actions.push_back("LP");
+	actions.push_back("{");
 	regexes.push_back("}");
-	actions.push_back("RP");
+	actions.push_back("}");
 
 	regexes.push_back("(");
-	actions.push_back("SLP");
+	actions.push_back("(");
 	regexes.push_back(")");
-	actions.push_back("SRP");
+	actions.push_back(")");
 
 	regexes.push_back("[");
-	actions.push_back("SLB");
+	actions.push_back("[");
 	regexes.push_back("]");
-	actions.push_back("SRB");
+	actions.push_back("]");
 	/* identifier */
 	regexes.push_back("[_a-zA-Z][_a-zA-Z0-9]*");
 	actions.push_back("id");
 	/* number */
-	regexes.push_back("[0-9]+");
-	actions.push_back("integer");
+	//regexes.push_back("[0-9]+");
+	//actions.push_back("integer");
 	regexes.push_back("[0-9]+(.[0-9]*)?");
-	actions.push_back("real");
+	actions.push_back("num");
 	cout << "...Regular expressions loaded, start to build NFA from them.\n";
 
 	clock_t start, end;
@@ -160,13 +160,13 @@ void Lexer::build_mini_c_min_dfa(bool debug)
 	dfa = d;
 }
 
-void Lexer::run(bool debug, const char * path_to_code)
+bool Lexer::run(bool debug, const char * path_to_code)
 {
 	string code, line;
 	ifstream in;
 	//const char* path_to_code = argv[1];
 	if (path_to_code == nullptr)
-		path_to_code = "C:\\Users\\Serica\\Archive\\大三上\\编译原理\\MiniC_Compiler\\assets\\code.cpp";
+		path_to_code = "C:\\Users\\Serica\\Archive\\大三上\\编译原理\\MiniC_Compiler\\assets\\code_LL_1.cpp";
 	in.open(path_to_code);
 	cout << "Source code:\n";
 	if (in.is_open()) {
@@ -180,5 +180,5 @@ void Lexer::run(bool debug, const char * path_to_code)
 	cout << "Building Min DFA now... It can take minutes, please be patient and wait...\n";
 	build_mini_c_min_dfa(debug);
 
-	dfa.scan(code);
+	return dfa.scan(code);
 }

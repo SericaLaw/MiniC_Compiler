@@ -32,6 +32,30 @@ void Parser::add_production(const string& p)
 	}
 }
 
+void Parser::build_vn_production_map()
+{
+	for (auto prod = productions.begin(), prod_end = productions.end(); prod != prod_end; ++prod) {
+		if (vn_production_map.count(prod->head) == 0) {
+			set<int> p;
+			p.insert(prod->index);
+			vn_production_map.insert(make_pair(prod->head, p));
+		}
+		else {
+			vn_production_map[prod->head].insert(prod->index);
+		}
+	}
+}
+
+void Parser::build_production_index()
+{
+	int i = 0;
+	for (auto prod = productions.begin(), prod_end = productions.end(); prod != prod_end; ++prod) {
+		prod->index = i++;
+	}
+}
+
+
+
 // 该函数顺便验证了映射对应关系的正确性
 void Parser::print_production(int index)
 {
@@ -120,36 +144,59 @@ void Parser::print_LL_1_parsing_table()
 
 void Parser::add_mini_c_production()
 {
-	add_production("program : stmts"); // 程序
+	add_production("program : stmts"); 
 	add_production("stmts : stmt stmts | 'epsilon'");
 	// if...else...
 	add_production("stmt : 'if' '(' logical-expression ')' stmt 'else' stmt");
-	// while...
-	//add_production("stmt : 'while' '(' logic-expression ')' stmt");
-	// return...
-	//add_production("stmt : 'return' arithmetic-expression ';'");
-	// 赋值语句
+
 	add_production("stmt : assignment-expression ';'");
 	// block
 	add_production("stmt : block");
-	// 声明语句
-	add_production("stmt : declarations");
+	
 
 	/* block */
 	add_production("block : '{' stmts '}'");
 
-	/* expr */
-	add_production("expression : assignment-expression | arithmetic-expression | logical-expression");
 
 	add_production("assignment-expression : identifier '=' arithmetic-expression");
-	add_production("arithmetic-expression : identifier a` | number a`");
+	add_production("arithmetic-expression : identifier a`");
 	add_production("a` : '+' arithmetic-expression a` | '-' arithmetic-expression a` | 'epsilon'");
-	//add_production("arithmetic-expression : arithmetic-expression '+' arithmetic-expression | arithmetic-expression '-' arithmetic-expression | identifier | number ");
 	add_production("logical-expression : 'true' | 'false'");
-	add_production("logical-expression : arithmetic-expression '==' arithmetic-expression");
 	/* identifier */
 	add_production("identifier : 'id'");
-	add_production("number : 'num'");
+}
+
+void Parser::print_LR_1_item(const LR_1_Item & i)
+{
+	Production p = productions[i.production];
+	cout << p.index << ": " << symbols[p.head] << " =>";
+	assert(vn_map[symbols[p.head]] == p.head);
+	int dot = 0;
+	for (int s : p.body) {
+		if (i.dot == dot)
+			cout << " ·";
+		if (s == EPSILON) {
+			cout << " 'epsilon'";
+			continue;
+		}
+		string symbol = symbols[s];
+		if (vn_map.count(symbol) == 1) {
+			cout << " " << symbol;
+			assert(vn_map[symbol] == s);
+		}
+		else if (vt_map.count(symbol) == 1) {
+			cout << " '" << symbol << "'";
+			assert(vt_map[symbol] == s);
+		}
+	}
+}
+
+void Parser::print_LR_1_set(const set<LR_1_Item>& s)
+{
+	for (LR_1_Item i : s) {
+		print_LR_1_item(i);
+		cout << endl;
+	}
 }
 
 // !important 这里不允许插入epsilon
@@ -233,7 +280,7 @@ void Parser::build_LL_1_parsing_table()
 				if (M.count(pair<int, int>(prod->head, *s)) == 0)
 					M[pair<int, int>(prod->head, *s)] = prod->index;
 				else {
-					cout << "WARNING: The grammar is not LL(1)!";
+					//cout << "WARNING: The grammar is not LL(1)!";
 					break;
 				}
 			}
@@ -247,7 +294,7 @@ void Parser::build_LL_1_parsing_table()
 					if (M.count(pair<int, int>(prod->head, *s)) == 0)
 						M[pair<int, int>(prod->head, *s)] = prod->index;
 					else {
-						cout << "WARNING: The grammar is not LL(1)!";
+						//cout << "WARNING: The grammar is not LL(1)!";
 						break;
 					}
 				}
@@ -256,7 +303,7 @@ void Parser::build_LL_1_parsing_table()
 				if (M.count(pair<int, int>(prod->head, DOLLAR)) == 0)
 					M[pair<int, int>(prod->head, DOLLAR)] = prod->index;
 				else {
-					cout << "WARNING: The grammar is not LL(1)!";
+					//cout << "WARNING: The grammar is not LL(1)!";
 					break;
 				}
 			}
@@ -265,9 +312,10 @@ void Parser::build_LL_1_parsing_table()
 	}
 }
 
-void Parser::parse_by_LL_1(vector<string> w)
+void Parser::parse_by_LL_1(vector<Token>& w)
 {
-	w.push_back("$");
+	Token end("$", "$", 0, 0, 0);
+	w.push_back(end);
 	stack<string> s;
 	s.push("$");
 	s.push(symbols[0]);
@@ -275,7 +323,7 @@ void Parser::parse_by_LL_1(vector<string> w)
 	string X = s.top();
 	while (X != "$") {
 		// 如果X是终结符且和ip所指的符号相同则出栈
-		if (X == *ip) {
+		if (X == ip->name) {
 			cout << "match " << s.top() << endl;
 			s.pop();
 			++ip;
@@ -283,20 +331,22 @@ void Parser::parse_by_LL_1(vector<string> w)
 		// 如果X是终结符却和ip所指符号不同，报错
 		else if (is_vt(X)) {
 			cout << "error\n";
+			break;
 		}
 		// 如果M[X, a]是报错条目
 		// hmm... 下面这么复杂也是因为把$单独拿出符号表的造成的...也许$应该还是放进符号表里吧...
 		// $ epsilon出现的情况考虑不好就会有一堆bug呢...
-		else if ((*ip != "$" && M.count(pair<int, int>(vn_map[X], vt_map[*ip])) == 0) ||
-			(*ip == "$" && M.count(pair<int, int>(vn_map[X], DOLLAR)) == 0)) {
+		else if ((ip->name != "$" && M.count(pair<int, int>(vn_map[X], vt_map[ip->name])) == 0) ||
+			(ip->name == "$" && M.count(pair<int, int>(vn_map[X], DOLLAR)) == 0)) {
 			cout << "error\n";
+			break;
 		}
 		else {
 			unsigned int prod_index;
-			if (*ip == "$")
+			if (ip->name == "$")
 				prod_index = M[pair<int, int>(vn_map[X], DOLLAR)];
 			else
-				prod_index = M[pair<int, int>(vn_map[X], vt_map[*ip])];
+				prod_index = M[pair<int, int>(vn_map[X], vt_map[ip->name])];
 			print_production(prod_index);
 			cout << endl;
 			s.pop();
@@ -328,9 +378,14 @@ set<int> Parser::first(int X)
 	}
 	else {
 		// 对所有X为产生式头部的产生式进行操作
-		for (auto prod = productions.begin(), prod_end = productions.end();
-			prod != prod_end; ++prod) {
-			if (prod->head == X) {
+		//for (auto prod = productions.begin(), prod_end = productions.end();
+		//	prod != prod_end; ++prod) {
+		
+		for(auto it = vn_production_map[X].begin(), end = vn_production_map[X].end();
+			it != end; ++it) {
+			Production* prod = &productions[*it];
+			//if (prod->head == X) {
+			assert(prod->head == X);
 				// 对产生式体中所有符号进行操作
 				if (prod->body[0] == X) // 如果是空产生式或左递归则不考虑该产生式
 					continue;
@@ -367,7 +422,7 @@ set<int> Parser::first(int X)
 						}
 					}
 				}
-			}
+			//}
 		}
 	}
 	first_map[X] = first_X;
@@ -404,6 +459,10 @@ set<int> Parser::first(vector<int>& beta)
 }
 
 // 龙书p141
+// TODO：该函数不能解决循环依赖的问题，以后需要改为不动点算法
+// 因此，不能对单个非终结符X求，而要对所有非终结符一起求，应用规则直到某次迭代里不再有新的终结符加入某非终结符的FOLLOW
+// FIRST也应同理
+// 这些函数应当直接体现在calc_first和calc_follow中
 set<int> Parser::follow(int X)
 {
 	auto found = follow_map.find(X);
@@ -428,6 +487,7 @@ set<int> Parser::follow(int X)
 				++next;
 				if (next == s_end) {
 					// A->aX
+					
 					set<int> follow_A = follow(prod->head);
 					follow_X.insert(follow_A.begin(), follow_A.end());
 				}
@@ -454,6 +514,7 @@ set<int> Parser::follow(int X)
 	follow_map[X] = follow_X;
 	return follow_X;
 }
+
 
 bool Parser::is_vt(int x)
 {
